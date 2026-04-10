@@ -34,13 +34,10 @@ async function saveLink({ url, type, title, summary, senderName }) {
         rich_text: summary ? [{ text: { content: summary } }] : [],
       },
       Source: {
-        rich_text: [{ text: { content: extractDomain(url) } }],
-      },
-      'Added By': {
-        rich_text: senderName ? [{ text: { content: senderName } }] : [],
+        select: { name: extractDomain(url) },
       },
       Status: {
-        select: { name: 'To Read' },
+        status: { name: 'To Read' },
       },
       'Added At': {
         date: { start: new Date().toISOString() },
