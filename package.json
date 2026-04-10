@@ -1,7 +1,7 @@
 {
   "name": "linkos",
   "version": "1.0.0",
-  "description": "WhatsApp bot that classifies links and saves them to Notion",
+  "description": "Telegram bot that classifies links and saves them to Notion",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -10,11 +10,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@notionhq/client": "^2.2.15",
-    "axios": "^1.7.2",
     "dotenv": "^16.4.5",
-    "whatsapp-web.js": "^1.26.0",
-    "qrcode-terminal": "^0.12.0",
-    "qrcode": "^1.5.4",
-    "express": "^4.19.2"
+    "telegraf": "^4.16.3"
   }
 }
