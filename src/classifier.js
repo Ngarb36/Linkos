@@ -137,13 +137,15 @@ Classification:
     const parsed = JSON.parse(response.content[0].text.trim());
     if (!VALID_TYPES.includes(parsed.type)) parsed.type = 'other';
     if (!Array.isArray(parsed.tags)) parsed.tags = [];
-    parsed.title = inferTitle(url, { ogTitle: parsed.title || meta.ogTitle, pageTitle: meta.pageTitle });
+    // Prefer user note as title if Claude didn't get real metadata
+    const claudeTitle = parsed.title && !parsed.title.startsWith('http') ? parsed.title : null;
+    parsed.title = userNote || claudeTitle || inferTitle(url, meta);
     parsed.summary = parsed.summary || meta.ogDescription || null;
     return parsed;
   } catch {
     return {
       type: 'other',
-      title: inferTitle(url, meta),
+      title: userNote || inferTitle(url, meta),
       summary: meta.ogDescription || null,
       tags: [],
     };

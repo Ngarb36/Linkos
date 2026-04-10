@@ -32,8 +32,11 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+const GENERIC_TITLES = new Set(['Facebook Video', 'Facebook Post', 'Facebook', 'Tweet on X', 'Instagram Reel', 'Instagram Post', 'LinkedIn Post', 'TikTok Video', 'Link']);
+
 function formatReply({ url, type, title, summary, source, tags }) {
   const emoji = TYPE_EMOJI[type] || '🔗';
+  const isGenericTitle = GENERIC_TITLES.has(title);
   const lines = [
     `${emoji} *${capitalize(type)}* — נשמר ב-Notion!`,
     '',
@@ -42,6 +45,7 @@ function formatReply({ url, type, title, summary, source, tags }) {
     `🌐 *מקור:* ${source}`,
     tags && tags.length > 0 ? `🏷 *תגיות:* ${tags.join(' · ')}` : null,
     `🔗 ${url}`,
+    isGenericTitle ? '\n_טיפ: שלח לינק עם תיאור קצר כדי שאשמור כותרת טובה יותר 💡_' : null,
   ];
   return lines.filter(Boolean).join('\n');
 }
