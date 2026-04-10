@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const { Telegraf } = require('telegraf');
+const express = require('express');
 const { classifyLink } = require('./classifier');
 const { saveLink, verifyDatabase } = require('./notion');
 
@@ -100,17 +101,23 @@ async function main() {
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
   bot.on('message', handleMessage);
 
-  const domain = process.env.WEBHOOK_DOMAIN; // e.g. linkos-production.up.railway.app
+  const domain = process.env.WEBHOOK_DOMAIN;
   const port = parseInt(process.env.PORT || '3000', 10);
 
   if (domain) {
-    // Webhook mode — no polling conflict, works great on Railway
-    await bot.launch({
-      webhook: { domain: `https://${domain}`, port },
+    const webhookPath = `/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+    const webhookUrl = `https://${domain}${webhookPath}`;
+
+    const app = express();
+    app.use(express.json());
+    app.post(webhookPath, (req, res) => bot.handleUpdate(req.body, res));
+    app.get('/', (_, res) => res.send('Linkos is running ✅'));
+
+    app.listen(port, async () => {
+      await bot.telegram.setWebhook(webhookUrl);
+      console.log(`🚀 Linkos bot running via webhook`);
     });
-    console.log(`🚀 Linkos bot running via webhook on port ${port}`);
   } else {
-    // Fallback: long polling (local dev)
     await bot.launch({ dropPendingUpdates: true });
     console.log('🚀 Linkos bot running via polling');
   }
