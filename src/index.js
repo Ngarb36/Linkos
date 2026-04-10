@@ -34,8 +34,9 @@ function isAllowed(sender) {
 }
 
 async function handleMessage(message) {
-  // Allow messages sent by the user to themselves, block bot's own replies
-  if (message.fromMe && message.body && message.body.includes('saved to Notion')) return;
+  // Skip bot's own replies to avoid loops
+  if (message.body && message.body.includes('saved to Notion')) return;
+  // For incoming messages from others, check allowed list
   if (!message.fromMe && !isAllowed(message.from)) return;
 
   const text = message.body || '';
@@ -88,7 +89,7 @@ async function main() {
   }
 
   const client = createWhatsAppClient();
-  client.on('message', handleMessage);
+  client.on('message_create', handleMessage);
   await client.initialize();
 }
 
