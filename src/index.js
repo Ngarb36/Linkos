@@ -34,8 +34,9 @@ function isAllowed(sender) {
 }
 
 async function handleMessage(message) {
-  if (message.fromMe) return;
-  if (!isAllowed(message.from)) return;
+  // Allow messages sent by the user to themselves, block bot's own replies
+  if (message.fromMe && message.body && message.body.includes('saved to Notion')) return;
+  if (!message.fromMe && !isAllowed(message.from)) return;
 
   const text = message.body || '';
   const urls = extractUrls(text);
