@@ -44,7 +44,7 @@ app.get('/qr.png', async (req, res) => {
 });
 
 function startQRServer() {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 QR server running on port ${PORT}`);
   });
 }
