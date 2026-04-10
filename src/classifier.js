@@ -44,29 +44,16 @@ async function classifyLink(url, userNote = '') {
   const [meta] = await Promise.all([fetchMetadata(url)]);
   const domain = extractDomain(url);
 
-  // Fast-path: og:type starts with "video" (catches Facebook videos, etc.)
   const isVideoByMeta = meta.ogType && meta.ogType.toLowerCase().startsWith('video');
   const isVideoByDomain = VIDEO_DOMAINS.some((d) => domain.includes(d));
   const isDoc = DOC_DOMAINS.some((d) => domain.includes(d));
 
-  if (isVideoByMeta || isVideoByDomain) {
-    return {
-      type: 'video',
-      title: meta.ogTitle || meta.pageTitle || null,
-      summary: meta.ogDescription || null,
-      tags: [],
-    };
-  }
-  if (isDoc) {
-    return {
-      type: 'documentation',
-      title: meta.ogTitle || meta.pageTitle || null,
-      summary: meta.ogDescription || null,
-      tags: [],
-    };
-  }
+  // Determine type hint for Claude
+  let typeHint = '';
+  if (isVideoByMeta || isVideoByDomain) typeHint = 'video';
+  else if (isDoc) typeHint = 'documentation';
 
-  // Ask Claude with full metadata context
+  // Always ask Claude — it generates a proper title even without metadata
   const context = [
     `URL: ${url}`,
     meta.ogTitle       && `Title: ${meta.ogTitle}`,
@@ -74,6 +61,7 @@ async function classifyLink(url, userNote = '') {
     meta.ogType        && `OG Type: ${meta.ogType}`,
     !meta.ogTitle && meta.pageTitle && `Page Title: ${meta.pageTitle}`,
     userNote           && `User note: ${userNote}`,
+    typeHint           && `Likely type: ${typeHint}`,
   ].filter(Boolean).join('\n');
 
   const response = await client.messages.create({
@@ -86,10 +74,17 @@ async function classifyLink(url, userNote = '') {
 
 ${context}
 
+IMPORTANT: You MUST always provide a meaningful "title". If no page title is available, infer a descriptive title from the URL, domain, and context. Never leave title as the URL itself.
+
+Examples:
+- x.com/user/status/123 → "Tweet by @user"
+- facebook.com/share/v/abc → "Facebook Video"
+- github.com/org/repo → "repo - GitHub"
+
 Return ONLY this JSON:
 {
   "type": "<video|article|tutorial|documentation|tool|other>",
-  "title": "<clear title based on the actual content, max 80 chars>",
+  "title": "<descriptive title, max 80 chars, NEVER the raw URL>",
   "summary": "<one sentence about the content, max 120 chars>",
   "tags": ["tag1", "tag2", "tag3"]
 }
