@@ -11,6 +11,40 @@ function extractDomain(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; }
 }
 
+// Always produces a human-readable name — never the raw URL
+function inferTitle(url, meta) {
+  if (meta.ogTitle) return meta.ogTitle;
+  if (meta.pageTitle) return meta.pageTitle;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace('www.', '');
+    if (host.includes('x.com') || host.includes('twitter.com')) {
+      const m = u.pathname.match(/\/([^/]+)\/status/);
+      return m ? `Tweet by @${m[1]}` : 'Tweet on X';
+    }
+    if (host.includes('facebook.com')) {
+      if (u.pathname.match(/\/share\/v\//)) return 'Facebook Video';
+      if (u.pathname.match(/\/share\//)) return 'Facebook Post';
+      return 'Facebook';
+    }
+    if (host.includes('instagram.com')) {
+      if (u.pathname.includes('/reel/')) return 'Instagram Reel';
+      return 'Instagram Post';
+    }
+    if (host.includes('linkedin.com')) return 'LinkedIn Post';
+    if (host.includes('tiktok.com')) return 'TikTok Video';
+    // Generic: use last meaningful path segment or hostname
+    const parts = u.pathname.split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last && last.length > 2 && !/^\d+$/.test(last)) {
+      return decodeURIComponent(last).replace(/[-_]/g, ' ');
+    }
+    return host;
+  } catch {
+    return 'Link';
+  }
+}
+
 // Fetch og:title, og:description, og:type from the page
 async function fetchMetadata(url) {
   try {
@@ -103,13 +137,13 @@ Classification:
     const parsed = JSON.parse(response.content[0].text.trim());
     if (!VALID_TYPES.includes(parsed.type)) parsed.type = 'other';
     if (!Array.isArray(parsed.tags)) parsed.tags = [];
-    parsed.title = parsed.title || meta.ogTitle || meta.pageTitle || null;
+    parsed.title = inferTitle(url, { ogTitle: parsed.title || meta.ogTitle, pageTitle: meta.pageTitle });
     parsed.summary = parsed.summary || meta.ogDescription || null;
     return parsed;
   } catch {
     return {
       type: 'other',
-      title: meta.ogTitle || meta.pageTitle || null,
+      title: inferTitle(url, meta),
       summary: meta.ogDescription || null,
       tags: [],
     };
