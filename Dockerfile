@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
+EXPOSE 3000
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm install

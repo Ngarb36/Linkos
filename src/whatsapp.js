@@ -1,5 +1,6 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const { setQR, setReady } = require('./qrServer');
 
 function createWhatsAppClient() {
   const client = new Client({
@@ -11,8 +12,9 @@ function createWhatsAppClient() {
   });
 
   client.on('qr', (qr) => {
-    console.log('\n📱 Scan this QR code with WhatsApp:\n');
+    console.log('\n📱 QR ready — open the Railway URL to scan\n');
     qrcode.generate(qr, { small: true });
+    setQR(qr);
   });
 
   client.on('authenticated', () => {
@@ -21,6 +23,7 @@ function createWhatsAppClient() {
 
   client.on('ready', () => {
     console.log('🚀 Linkos bot is ready!');
+    setReady();
   });
 
   client.on('auth_failure', (msg) => {

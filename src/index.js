@@ -3,6 +3,7 @@ require('dotenv').config();
 const { createWhatsAppClient } = require('./whatsapp');
 const { classifyLink } = require('./classifier');
 const { saveLink, verifyDatabase } = require('./notion');
+const { startQRServer } = require('./qrServer');
 
 // Validate required env vars
 const REQUIRED_ENV = ['ANTHROPIC_API_KEY', 'NOTION_TOKEN', 'NOTION_DATABASE_ID'];
@@ -72,6 +73,8 @@ function capitalize(str) {
 async function main() {
   console.log('🔗 Linkos – WhatsApp → Notion link saver');
   console.log('─'.repeat(40));
+
+  startQRServer();
 
   // Verify Notion connection before starting WhatsApp
   try {
