@@ -31,15 +31,16 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function formatReply({ url, type, title, summary, source }) {
+function formatReply({ url, type, title, summary, source, tags }) {
   const emoji = TYPE_EMOJI[type] || '🔗';
   const lines = [
     `${emoji} *${capitalize(type)}* — נשמר ב-Notion!`,
     '',
-    title ? `📌 *כותרת:* ${title}` : null,
+    title   ? `📌 *כותרת:* ${title}` : null,
     summary ? `📝 *סיכום:* ${summary}` : null,
     `🌐 *מקור:* ${source}`,
-    `🔗 *לינק:* ${url}`,
+    tags && tags.length > 0 ? `🏷 *תגיות:* ${tags.join(' · ')}` : null,
+    `🔗 ${url}`,
   ];
   return lines.filter(Boolean).join('\n');
 }
@@ -57,19 +58,19 @@ async function handleMessage(ctx) {
 
     try {
       const userNote = text.replace(URL_REGEX, '').trim();
-      const { type, title, summary } = await classifyLink(url, userNote);
+      const { type, title, summary, tags } = await classifyLink(url, userNote);
 
       const source = (() => {
         try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
       })();
 
-      await saveLink({ url, type, title, summary, senderName });
+      await saveLink({ url, type, title, summary, tags, senderName });
 
       await ctx.telegram.editMessageText(
         ctx.chat.id,
         thinking.message_id,
         undefined,
-        formatReply({ url, type, title, summary, source }),
+        formatReply({ url, type, title, summary, source, tags }),
         { parse_mode: 'Markdown' }
       );
     } catch (err) {

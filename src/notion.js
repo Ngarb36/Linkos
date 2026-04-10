@@ -12,7 +12,7 @@ const TYPE_EMOJI = {
   other: '🔗',
 };
 
-async function saveLink({ url, type, title, summary, senderName }) {
+async function saveLink({ url, type, title, summary, tags, senderName }) {
   const emoji = TYPE_EMOJI[type] || '🔗';
   const pageTitle = title || url;
 
@@ -39,6 +39,11 @@ async function saveLink({ url, type, title, summary, senderName }) {
       Status: {
         status: { name: 'To Read' },
       },
+      ...(tags && tags.length > 0 && {
+        Tags: {
+          multi_select: tags.map((t) => ({ name: t })),
+        },
+      }),
       'Added At': {
         date: { start: new Date().toISOString() },
       },

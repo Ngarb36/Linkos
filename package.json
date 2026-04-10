@@ -11,6 +11,7 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@notionhq/client": "^2.2.15",
     "dotenv": "^16.4.5",
-    "telegraf": "^4.16.3"
+    "telegraf": "^4.16.3",
+    "axios": "^1.7.2"
   }
 }
