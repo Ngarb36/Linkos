@@ -134,15 +134,19 @@ Classification:
   });
 
   try {
-    const parsed = JSON.parse(response.content[0].text.trim());
+    const raw = response.content[0].text.trim();
+    console.log('[classifier] raw response:', raw);
+    const parsed = JSON.parse(raw);
     if (!VALID_TYPES.includes(parsed.type)) parsed.type = 'other';
     if (!Array.isArray(parsed.tags)) parsed.tags = [];
     // Prefer user note as title if Claude didn't get real metadata
     const claudeTitle = parsed.title && !parsed.title.startsWith('http') ? parsed.title : null;
     parsed.title = userNote || claudeTitle || inferTitle(url, meta);
     parsed.summary = parsed.summary || meta.ogDescription || null;
+    console.log('[classifier] result:', JSON.stringify({ type: parsed.type, title: parsed.title, tags: parsed.tags }));
     return parsed;
-  } catch {
+  } catch (e) {
+    console.error('[classifier] parse error:', e.message, response.content[0]?.text);
     return {
       type: 'other',
       title: userNote || inferTitle(url, meta),
