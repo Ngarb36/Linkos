@@ -98,11 +98,22 @@ async function main() {
   }
 
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
-
   bot.on('message', handleMessage);
 
-  bot.launch();
-  console.log('🚀 Linkos bot is running on Telegram!');
+  const domain = process.env.WEBHOOK_DOMAIN; // e.g. linkos-production.up.railway.app
+  const port = parseInt(process.env.PORT || '3000', 10);
+
+  if (domain) {
+    // Webhook mode — no polling conflict, works great on Railway
+    await bot.launch({
+      webhook: { domain: `https://${domain}`, port },
+    });
+    console.log(`🚀 Linkos bot running via webhook on port ${port}`);
+  } else {
+    // Fallback: long polling (local dev)
+    await bot.launch({ dropPendingUpdates: true });
+    console.log('🚀 Linkos bot running via polling');
+  }
 
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
