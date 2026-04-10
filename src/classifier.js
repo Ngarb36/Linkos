@@ -134,7 +134,10 @@ Classification:
   });
 
   try {
-    const raw = response.content[0].text.trim();
+    const raw = response.content[0].text.trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
     console.log('[classifier] raw response:', raw);
     const parsed = JSON.parse(raw);
     if (!VALID_TYPES.includes(parsed.type)) parsed.type = 'other';
