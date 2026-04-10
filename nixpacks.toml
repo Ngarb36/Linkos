@@ -1,5 +1,0 @@
-[phases.setup]
-nixPkgs = ["chromium", "nss", "freetype", "harfbuzz", "ca-certificates", "glib", "dbus", "atk", "cups", "libdrm", "mesa", "libxkbcommon", "libX11", "libXcomposite", "libXdamage", "libXext", "libXfixes", "libXrandr", "pango", "cairo", "alsa-lib"]
-
-[start]
-cmd = "PUPPETEER_EXECUTABLE_PATH=$(which chromium) node src/index.js"
